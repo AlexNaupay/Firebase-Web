@@ -20,7 +20,7 @@ const analytics = getAnalytics(app);
 </script>
 
 <template>
-  Hello
+  <p class="text-2xl">Home page</p>
   <RouterLink to="/about"> About</RouterLink>
 </template>
 
