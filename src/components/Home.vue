@@ -20,8 +20,9 @@ const analytics = getAnalytics(app);
 </script>
 
 <template>
-  <p class="text-2xl">Home page</p>
-  <RouterLink to="/about"> About</RouterLink>
+  <div class="container mx-auto xl:px-0 px-6 text-gray-800 transition-all duration-300 ease-in-out">
+    <p class="text-2xl">Home page</p>
+  </div>
 </template>
 
 <style scoped>

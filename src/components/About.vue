@@ -3,7 +3,7 @@
 </script>
 
 <template>
-  ¡Hello from About!
+  <p>¡Hello from About!</p>
 </template>
 
 <style scoped>
