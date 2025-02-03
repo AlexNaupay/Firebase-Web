@@ -14,7 +14,7 @@ const firebaseConfig = {
   measurementId: import.meta.env.VITE_MEASUREMENT_ID,
 };
 
-let posts: any[] = [];
+let posts: any[];
 
 onMounted(async () => {
   posts = []
