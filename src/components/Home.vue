@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import {initializeApp} from "firebase/app";
-import { getFirestore, collection, getDocs } from "firebase/firestore/lite";
-import {onMounted} from "vue";
+import { getFirestore, collection, getDocs, query, where } from "firebase/firestore/lite";
+import {onMounted, ref} from "vue";
 
 const firebaseConfig = {
   apiKey: import.meta.env.VITE_API_KEY,
@@ -14,28 +14,67 @@ const firebaseConfig = {
   measurementId: import.meta.env.VITE_MEASUREMENT_ID,
 };
 
-let posts: any[];
+
+async function getPostsWithAuthors(db:any) {
+  // 1. Obtener posts
+  const postsSnapshot = await getDocs(collection(db, "posts"));
+  const posts = postsSnapshot.docs.map(docPost => ({
+    id: docPost.id,
+    ...docPost.data(),
+    author: docPost.data().author // Referencia al autor
+  }));
+
+  // 2. Extraer referencias de autores únicas
+  const authorRefs = [...new Set(posts.map(post => post.author))];
+console.info(authorRefs);
+
+  // 3. Dividir referencias en lotes de máximo 10
+  const chunks = [];
+  for (let i = 0; i < authorRefs.length; i += 30) {
+    chunks.push(authorRefs.slice(i, i + 30));
+  }
+
+  // 4. Obtener autores por lotes
+  const authorsPromises = chunks.map(async (chunk) => {
+    const q = query(collection(db, "users"), where("__name__", "in", chunk.map(ref => ref.id)));
+    const snapshot = await getDocs(q);
+    return snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+  });
+  const authorsChunks = await Promise.all(authorsPromises);
+  const authors = authorsChunks.flat();
+console.info(authors);
+  // 5. Combinar posts con autores
+  const postsWithAuthors = posts.map(post => ({
+    ...post,
+    author: authors.find(author => author.id === post.author.id)
+  }));
+
+  return postsWithAuthors;
+}
+
+let posts = ref([]);
 
 onMounted(async () => {
-  posts = []
   // Initialize Firebase
   const app = initializeApp(firebaseConfig);
   const db = getFirestore(app);
 
-  const querySnapshot = await getDocs(collection(db, 'posts'));
-
+  /*const querySnapshot = await getDocs(collection(db, 'posts'));
   querySnapshot.forEach((doc) => {
-    posts.push(doc.data());
-    console.log(doc.id);
-    console.log(doc.data());
-  });
+      posts.value.push(doc.data());
+  });*/
+
+  posts.value = await getPostsWithAuthors(db);
+
 });
 
 </script>
 
 <template>
   <div class="container mx-auto xl:px-0 px-6 text-gray-800 transition-all duration-300 ease-in-out">
-    <h1 class="text-2xl mb-2">Post of day</h1>
+
+    <h1 class="text-2xl mb-2">Posts of day</h1>
+
     <div class="grid gap-8 lg:grid-cols-2">
     <article v-for="post in posts" class="p-6 bg-white rounded-lg border border-gray-200 shadow-md dark:bg-gray-800 dark:border-gray-700">
       <div class="flex justify-between items-center mb-5 text-gray-500">
@@ -47,13 +86,13 @@ onMounted(async () => {
       </div>
       <h2 class="mb-2 text-2xl font-bold tracking-tight text-gray-900 dark:text-white"><a href="#">{{ post.title }}</a></h2>
       <p class="mb-5 font-light text-gray-500 dark:text-gray-400">
-        {{ post.body }}
+        {{ post.extract }}
       </p>
       <div class="flex justify-between items-center">
         <div class="flex items-center space-x-4">
           <img class="w-7 h-7 rounded-full" src="https://flowbite.s3.amazonaws.com/blocks/marketing-ui/avatars/jese-leos.png" alt="Jese Leos avatar" />
           <span class="font-medium dark:text-white">
-                          Jese Leos
+                          {{ post.author.first }} {{ post.author.last }}
                       </span>
         </div>
         <a href="#" class="inline-flex items-center font-medium text-primary-600 dark:text-primary-500 hover:underline">
