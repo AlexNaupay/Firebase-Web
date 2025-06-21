@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import {initializeApp} from "firebase/app";
-import {getFirestore, collection, getDocs, query, where} from "firebase/firestore/lite";
+import {collection, getDocs, getFirestore, query, where} from "firebase/firestore/lite";
 import {onMounted, ref} from "vue";
 
 const firebaseConfig = {
@@ -43,12 +43,10 @@ async function getPostsWithAuthors(db: any) {
   const authors = authorsChunks.flat();
 
   // 5. Combinar posts con autores
-  const postsWithAuthors = posts.map(post => ({
+  return posts.map(post => ({
     ...post,
     author: authors.find(author => author.id === post.author.id)
   }));
-
-  return postsWithAuthors;
 }
 
 let posts = ref();
