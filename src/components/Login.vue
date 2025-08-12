@@ -11,6 +11,9 @@ const auth = getAuth()
 
 onMounted(() => {
   console.log("User is signed in?", auth.currentUser);
+  if (auth.currentUser) {
+    router.push("/");
+  }
 })
 
 function signIn() {

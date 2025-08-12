@@ -4,9 +4,18 @@ import './style.css'
 import App from './App.vue';
 import HomeView from './components/Home.vue'
 import AboutView from './components/About.vue'
-import {initializeApp} from "firebase/app";
-import {getAuth} from "firebase/auth";
+import { initializeApp } from "firebase/app";
+import { getAuth, onAuthStateChanged } from "firebase/auth";
 import Login from "./components/Login.vue";
+
+function getCurrentUser() {
+    return new Promise((resolve, reject) => {
+        const unsubscribe = onAuthStateChanged(getAuth(), (user) => {
+            unsubscribe();
+            resolve(user);
+        }, reject);
+    });
+}
 
 const firebaseConfig = {
     apiKey: import.meta.env.VITE_API_KEY,
@@ -21,6 +30,9 @@ const firebaseConfig = {
 
 initializeApp(firebaseConfig);
 
+const user = await getCurrentUser(); // Use onAuthStateChanged instead of getAuth().currentUser at startup
+//const user = getAuth().currentUser;
+console.log("User is signed in?", user);
 
 const routes = [
     { path: '/', component: HomeView, meta: { requiresAuth: true} },
@@ -35,7 +47,6 @@ const router = createRouter({
 
 router.beforeEach(async (to, from, next) => {
     if (to.matched.some((r) => r.meta.requiresAuth)) {
-        const user = getAuth().currentUser;
         if (!user) {
             console.log("beforeEach: User is NOT signed in", from.fullPath, to.fullPath);
             next({ path: "/login", query: { redirect: to.fullPath } });
