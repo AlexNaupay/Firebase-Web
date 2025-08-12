@@ -1,20 +1,7 @@
 <script setup lang="ts">
-import { initializeApp } from "firebase/app";
-import { getAuth, signInWithEmailAndPassword, signOut } from "firebase/auth";
+import { getAuth } from "firebase/auth";
 import { collection, getDocs, getFirestore, query, where } from "firebase/firestore/lite";
 import { onMounted, ref } from "vue";
-
-const firebaseConfig = {
-  apiKey: import.meta.env.VITE_API_KEY,
-  authDomain: import.meta.env.VITE_AUTH_DOMAIN,
-  databaseURL: import.meta.env.VITE_DATABASE_URL,
-  projectId: import.meta.env.VITE_PROJECT_ID,
-  storageBucket: import.meta.env.VITE_STORAGE_BUCKET,
-  messagingSenderId: import.meta.env.VITE_MESSAGING_SENDER_ID,
-  appId: import.meta.env.VITE_APP_ID,
-  measurementId: import.meta.env.VITE_MEASUREMENT_ID,
-};
-
 
 async function getPostsWithAuthors(db: any) {
   // 1. Obtener posts
@@ -56,8 +43,7 @@ const auth = ref();
 
 onMounted(async () => {
   // Initialize Firebase
-  const app = initializeApp(firebaseConfig);
-  const db = getFirestore(app);
+  const db = getFirestore();
 
   /*const querySnapshot = await getDocs(collection(db, 'posts'));
   querySnapshot.forEach((doc) => {
@@ -66,44 +52,14 @@ onMounted(async () => {
 
   posts.value = await getPostsWithAuthors(db);
 
-  auth.value = getAuth(app);
+  auth.value = getAuth();
   console.log("Auth currentUser:", auth.value.currentUser);
 });
-
-function signIn(){
-  if (!auth.value.currentUser) {
-    console.log("User is NOT signed in");
-    signInWithEmailAndPassword(auth.value, '', '')
-        .then((userCredential) => {
-          const user = userCredential.user;
-          console.log("User signed in:", user);
-        })
-        .catch((error) => {
-          const errorCode = error.code;
-          const errorMessage = error.message;
-          console.log(errorCode, errorMessage);
-        })
-  }else {
-    console.log("User is signed in ...", auth.value.currentUser);
-  }
-}
-
-function logOut(){
-  const auth = getAuth();
-  signOut(auth).then(() => {
-    console.log("User signed out");
-  }).catch((error) => {
-    console.error("Error signing out:", error);
-  });
-}
 
 </script>
 
 <template>
   <div class="container mx-auto xl:px-0 px-6 text-gray-800 transition-all duration-300 ease-in-out">
-
-    <button type="button" @click="signIn()" class="text-white bg-blue-700 hover:bg-blue-800 focus:outline-none focus:ring-4 focus:ring-blue-300 font-medium rounded-full text-sm px-5 py-2.5 text-center me-2 mb-2 dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800">Sign in</button>
-    <button type="button" @click="logOut()" class="py-2.5 px-5 me-2 mb-2 text-sm font-medium text-gray-900 focus:outline-none bg-white rounded-full border border-gray-200 hover:bg-gray-100 hover:text-blue-700 focus:z-10 focus:ring-4 focus:ring-gray-100 dark:focus:ring-gray-700 dark:bg-gray-800 dark:text-gray-400 dark:border-gray-600 dark:hover:text-white dark:hover:bg-gray-700">Logout</button>
 
     <h1 class="text-2xl mb-2">Posts of day</h1>
 
